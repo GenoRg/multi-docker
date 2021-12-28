@@ -1,0 +1,22 @@
+language: generic 
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t genorg/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true genorg/react-test npm test
+
+after_success:
+  - docker build -t genorg/multi-client ./client
+  - docker build -t genorg/multi-nginx ./nginx
+  - docker build -t genorg/multi-server ./server
+  - docker build -t genorg/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push genorg/multi-client
+  - docker push genorg/multi-nginx
+  - docker push genorg/multi-server
+  - docker push genorg/multi-worker
